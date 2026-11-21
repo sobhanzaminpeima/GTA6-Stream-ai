@@ -145,6 +145,7 @@ class Livestream(Base):
     live_chat_id: Mapped[str | None] = mapped_column(String(300))
     content_type: Mapped[str] = mapped_column(String(40), default=ContentType.UNVERIFIED.value)
     classification_reason: Mapped[str | None] = mapped_column(Text)
+    license: Mapped[str | None] = mapped_column(String(30))  # YouTube status.license: creativeCommon | youtube
     media_source: Mapped[str | None] = mapped_column(String(500))  # ingest URL/path ONLY for authorized sources
     discovered_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)
     last_seen: Mapped[dt.datetime] = mapped_column(DateTime, default=now)

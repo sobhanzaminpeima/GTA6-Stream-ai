@@ -200,7 +200,7 @@ def status():
 @app.get("/api/streams")
 def list_streams(live: bool | None = None, platform: str | None = None, language: str | None = None,
                  min_viewers: int | None = None, max_viewers: int | None = None, content_type: str | None = None,
-                 authorization: str | None = None, monitoring: str | None = None):
+                 authorization: str | None = None, monitoring: str | None = None, license: str | None = None):
     with session() as s:
         q = select(Livestream).order_by(desc(Livestream.viewer_count), desc(Livestream.id))
         if live is not None:
@@ -215,6 +215,10 @@ def list_streams(live: bool | None = None, platform: str | None = None, language
             q = q.where(Livestream.viewer_count <= max_viewers)
         if content_type:
             q = q.where(Livestream.content_type == content_type)
+        if license == "creativeCommon":
+            q = q.where(Livestream.license == "creativeCommon")
+        elif license == "standard":
+            q = q.where((Livestream.license.is_(None)) | (Livestream.license != "creativeCommon"))
         out = []
         for ls in s.scalars(q.limit(300)):
             d = row(ls)
@@ -239,11 +243,12 @@ class DiscoveryIn(BaseModel):
     keywords: list[str] | None = None
     language: str | None = "en"
     platforms: list[str] = ["youtube", "twitch"]
+    cc_only: bool = False
 
 
 @app.post("/api/discovery/run", dependencies=[Depends(guard)])
 def discovery_run(body: DiscoveryIn):
-    return discovery.run_discovery(body.keywords, body.language, tuple(body.platforms))
+    return discovery.run_discovery(body.keywords, body.language, tuple(body.platforms), body.cc_only)
 
 
 class StreamIn(BaseModel):

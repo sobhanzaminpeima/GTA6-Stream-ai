@@ -71,8 +71,10 @@ class YouTubeClient:
         return r.json()
 
     # ---- discovery
-    def search_live(self, query: str, max_results: int = 25, language: str | None = "en") -> list[dict]:
+    def search_live(self, query: str, max_results: int = 25, language: str | None = "en", cc_only: bool = False) -> list[dict]:
         p = dict(part="snippet", eventType="live", type="video", q=query, maxResults=max_results, order="viewCount")
+        if cc_only:  # creator chose Creative Commons Attribution: reuse + edit + commercial with credit
+            p["videoLicense"] = "creativeCommon"
         if language:
             p["relevanceLanguage"] = language
         items = self._get("search", "search.list", **p).get("items", [])
@@ -82,7 +84,7 @@ class YouTubeClient:
     def video_details(self, ids: list[str]) -> list[dict]:
         out = []
         for i in range(0, len(ids), 50):
-            d = self._get("videos", "videos.list", part="snippet,liveStreamingDetails,statistics",
+            d = self._get("videos", "videos.list", part="snippet,liveStreamingDetails,statistics,status",
                           id=",".join(ids[i:i + 50]))
             for v in d.get("items", []):
                 sn, ld = v.get("snippet", {}), v.get("liveStreamingDetails", {})
@@ -99,6 +101,7 @@ class YouTubeClient:
                     "is_live": sn.get("liveBroadcastContent") == "live" and not ld.get("actualEndTime"),
                     "live_chat_id": ld.get("activeLiveChatId"),
                     "chat_available": bool(ld.get("activeLiveChatId")),
+                    "license": (v.get("status") or {}).get("license"),
                 })
         return out
 

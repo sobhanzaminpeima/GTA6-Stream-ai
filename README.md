@@ -54,6 +54,7 @@ Most clip tools wait for the VOD, or they just re-upload someone else's footage.
 | | |
 |---|---|
 | **Live Radar** | Finds GTA live streams on YouTube (Data API v3) and Twitch (Helix). Content is classified conservatively: confirmed gameplay / GTA V / GTA VI commentary / trailer reaction / fan concept / unverified |
+| **Free-to-reuse filter** | One click finds YouTube live streams the creator licensed as **Creative Commons (CC BY)**, which allows reuse, editing and monetization with credit. The license is recorded as evidence together with the required attribution |
 | **Watchlist & Rights** | Per-streamer priority, keywords and thresholds. Rights records hold evidence, expiry, commercial/editing/recording flags and attribution |
 | **Chat Intelligence** | YouTube live chat polling and Twitch EventSub WebSocket. Normalization with stretched words, emoji and multilingual reactions. User IDs are stored only as salted hashes, and message text is cleared after 7 days |
 | **Rolling buffer** | FFmpeg ingest into 2-second segments, a 2–30 min window, pinned segments for active jobs, crash recovery |

@@ -19,7 +19,7 @@ const FA = {
   "timeline →": "تایم‌لاین ←", "open →": "باز کردن ←", "← all projects": "→ همه‌ی پروژه‌ها",
   "— = not available from YouTube Analytics yet": "— یعنی هنوز از YouTube Analytics در دسترس نیست",
   // radar
-  "Run discovery now": "جستجوی استریم‌ها", "+ Add a stream manually": "+ افزودن دستی استریم", "Any": "همه", "Live now ": "الان لایو",
+  "Run discovery now": "جستجوی استریم‌ها", "Find free-to-reuse streams (CC BY)": "پیدا کردن استریم‌های آزاد برای استفاده (CC BY)", "Any license": "هر لایسنسی", "Free to reuse (CC BY)": "آزاد برای استفاده (CC BY)", "Needs permission": "نیاز به مجوز", "needs permission": "نیاز به مجوز", "CC BY · free to reuse": "CC BY · آزاد برای استفاده", "+ Add a stream manually": "+ افزودن دستی استریم", "Any": "همه", "Live now ": "الان لایو",
   "Offline": "آفلاین", "All platforms": "همه‌ی پلتفرم‌ها", "Simulation": "شبیه‌سازی", "Uploads": "آپلودها", "Any status": "هر وضعیتی",
   "Monitoring": "در حال پایش", "Buffering": "در حال ضبط بافر", "Idle": "بیکار", "Stopped": "متوقف", "Any rights": "هر مجوزی",
   "Owned": "مالکیت خودتان", "Licensed": "دارای لایسنس", "Authorized": "مجاز", "Restricted": "ممنوع", "Unknown": "نامشخص",

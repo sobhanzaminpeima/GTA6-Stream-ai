@@ -199,3 +199,32 @@ def test_titles_never_call_gta5_footage_gta6():
     t5 = titles_for("GTA 5", "CLIP", 8, "SURPRISE")
     assert all("GTA 6" not in t for t in t5) and all(len(t) <= 100 for t in t5)
     assert len(titles_for("GTA 6", "HOW", 5, "EDUCATIONAL")) == 5
+
+
+def test_cc_by_stream_gets_licensed_record_with_credit_but_never_overrides_owner():
+    from studio.discovery import upsert
+    base = {"platform": "youtube", "title": "GTA 6 live", "channel_name": "CCStreamer", "channel_id": "UCcc",
+            "description": "", "tags": []}
+    with session() as s:
+        ls = upsert(s, {**base, "stream_id": "cc1", "source_url": "https://www.youtube.com/watch?v=cc1", "license": "creativeCommon"})
+        s.flush()
+        d = rights.decide(s, ls)
+        assert d.state == "EXPLICITLY_LICENSED" and d.can_edit and d.commercial_use
+        assert "CCStreamer" in d.attribution and "CC BY" in d.attribution
+        std = upsert(s, {**base, "stream_id": "std1", "source_url": "https://www.youtube.com/watch?v=std1", "license": "youtube"})
+        s.flush()
+        assert rights.decide(s, std).state == "UNKNOWN"
+        s.add(RightsPermission(source_url="https://www.youtube.com/watch?v=cc2", state="RESTRICTED", evidence="creator said no"))
+        s.flush()
+        ls2 = upsert(s, {**base, "stream_id": "cc2", "source_url": "https://www.youtube.com/watch?v=cc2", "license": "creativeCommon"})
+        s.flush()
+        assert rights.decide(s, ls2).state == "RESTRICTED"  # the owner's record wins
+
+
+def test_license_filter_api():
+    from fastapi.testclient import TestClient
+    from studio.api import app
+    c = TestClient(app)
+    cc = c.get("/api/streams?license=creativeCommon").json()
+    assert cc and all(x["license"] == "creativeCommon" for x in cc)
+    assert all(x["license"] != "creativeCommon" for x in c.get("/api/streams?license=standard").json())

@@ -101,7 +101,7 @@ VIEWS.radar = async (_, soft) => {
   if (!soft || !$("#streams")) {
     $("#view").innerHTML = `
     <div class="help">Discovery uses the official YouTube Data API and Twitch Helix. A title that says "GTA 6" is <b>not</b> proof of GTA 6 gameplay: only the platform category or your own verification marks <i>confirmed gameplay</i>. Monitoring chat is allowed for public streams; recording needs a rights record (Streamers &amp; Rights).</div>
-    <div class="row" style="margin-bottom:12px"><button onclick="runDiscovery()">Run discovery now</button><button class="ghost" onclick="addStreamModal()">+ Add a stream manually</button><span id="disc" class="muted small"></span></div>
+    <div class="row" style="margin-bottom:12px"><button onclick="runDiscovery()">Run discovery now</button><button class="ghost" onclick="runDiscovery(true)" title="YouTube streams the creator licensed as Creative Commons (CC BY): reuse, editing and monetization allowed with credit">Find free-to-reuse streams (CC BY)</button><button class="ghost" onclick="addStreamModal()">+ Add a stream manually</button><span id="disc" class="muted small"></span></div>
     <div class="filters">
       ${sel("live", "Live", [["", "Any"], ["true", "Live now"], ["false", "Offline"]])}
       ${sel("platform", "Platform", [["", "All platforms"], ["youtube", "YouTube"], ["twitch", "Twitch"], ["simulation", "Simulation"], ["upload", "Uploads"]])}
@@ -110,6 +110,7 @@ VIEWS.radar = async (_, soft) => {
       <input placeholder="Max viewers" data-f="max_viewers" type="number" value="${esc(f.max_viewers || "")}" style="width:120px">
       ${sel("monitoring", "Monitoring", [["", "Any status"], ["MONITORING", "Monitoring"], ["BUFFERING", "Buffering"], ["IDLE", "Idle"], ["STOPPED", "Stopped"]])}
       ${sel("authorization", "Authorization", [["", "Any rights"], ["OWNED", "Owned"], ["EXPLICITLY_LICENSED", "Licensed"], ["AUTHORIZED_FOR_CLIPPING", "Authorized"], ["RESTRICTED", "Restricted"], ["UNKNOWN", "Unknown"]])}
+      ${sel("license", "License", [["", "Any license"], ["creativeCommon", "Free to reuse (CC BY)"], ["standard", "Needs permission"]])}
       ${sel("content_type", "Content", [["", "Any content"], ["confirmed_gameplay", "Confirmed gameplay"], ["gta_v_gameplay", "GTA V gameplay"], ["gta_vi_commentary", "GTA VI commentary"], ["trailer_reaction", "Trailer reaction"], ["fan_concept", "Fan concept"], ["unverified", "Unverified"]])}
     </div><div id="streams" class="streams"></div>`;
     document.querySelectorAll("[data-f]").forEach((el) => el.addEventListener("change", () => { f[el.dataset.f] = el.value; VIEWS.radar(null, true); }));
@@ -124,7 +125,7 @@ function streamCard(s) {
   return `<div class="scard"><div class="thumb" style="${s.thumbnail_url ? `background-image:url('${esc(s.thumbnail_url)}')` : ""}">${s.is_live ? '<span class="live">LIVE</span>' : ""}<span class="viewers">${num(s.viewer_count)} viewers</span></div>
   <div class="body"><div class="t">${esc(s.title)} ${s.is_simulation ? pill("SIMULATION", "sim") : ""}</div>
   <div class="small muted">${esc(s.channel_name)} · ${esc(s.platform)} · ${esc(s.language || "?")}</div>
-  <div class="row">${pill(s.authorization)} ${pill(s.monitoring_status)} <span class="pill" title="${esc(s.classification_reason)}">${esc(CT[s.content_type] || s.content_type)}</span></div>
+  <div class="row">${s.license === "creativeCommon" ? '<span class="pill ok" title="Creative Commons Attribution: reuse, edit and monetize with credit">CC BY · free to reuse</span>' : '<span class="pill" title="Standard YouTube/Twitch license: ask the creator first">needs permission</span>'} ${pill(s.authorization)} ${pill(s.monitoring_status)} <span class="pill" title="${esc(s.classification_reason)}">${esc(CT[s.content_type] || s.content_type)}</span></div>
   <div class="small muted">Chat: ${num(s.chat_last_minute)} msg/min · Candidates: ${s.candidate_count} · Chat ${s.chat_available === false ? "unavailable" : "available"}</div>
   <div class="row" style="margin-top:auto">
    ${mon ? `<button class="ghost small" onclick="stopMon(${s.session_id})">Stop</button><a class="small" href="#chat/${s.session_id}">timeline →</a>` :
@@ -133,7 +134,7 @@ function streamCard(s) {
    <button class="ghost small" onclick='streamEdit(${JSON.stringify({ id: s.id, ct: s.content_type, ms: s.media_source || "", can: s.can_record })})'>⋯</button>
   </div></div></div>`;
 }
-async function runDiscovery() { $("#disc").textContent = "searching…"; const r = await act(() => api("/api/discovery/run", { method: "POST", body: {} })); $("#disc").textContent = `YouTube: ${r.youtube.status}${r.youtube.detail ? " (" + r.youtube.detail + ")" : ""} · Twitch: ${r.twitch.status}${r.twitch.detail ? " (" + r.twitch.detail + ")" : ""} · found ${r.found}`; VIEWS.radar(null, true); }
+async function runDiscovery(cc) { $("#disc").textContent = "searching…"; const r = await act(() => api("/api/discovery/run", { method: "POST", body: { cc_only: !!cc } })); if (cc) { STATE.radarF.license = "creativeCommon"; } $("#disc").textContent = `YouTube: ${r.youtube.status}${r.youtube.detail ? " (" + r.youtube.detail + ")" : ""} · Twitch: ${r.twitch.status}${r.twitch.detail ? " (" + r.twitch.detail + ")" : ""} · found ${r.found}${r.youtube.cc_by != null ? ` · CC BY ${r.youtube.cc_by}` : ""}`; VIEWS.radar(cc ? undefined : null, !cc); }
 async function startMon(id, rec) { const r = await act(() => api("/api/monitor/start", { method: "POST", body: { livestream_id: id, record_media: rec } }), rec ? "Monitoring started (recording only if rights allow)" : "Chat monitoring started"); if (r.status === "SOURCE_RESTRICTED") toast("Media restricted: " + r.status_detail, 8000); VIEWS.radar(null, true); }
 async function stopMon(sid) { await act(() => api(`/api/monitor/${sid}/stop`, { method: "POST" }), "Stopped"); softRefresh(); }
 function addStreamModal() {

@@ -15,7 +15,7 @@ from .chat.twitch import TwitchClient
 from .chat.youtube import YouTubeClient
 from .costs import check_quota, record
 from .db import audit, session
-from .models import ContentType, Livestream, Streamer, now
+from .models import ContentType, Livestream, RightsPermission, Streamer, now
 
 DEFAULT_KEYWORDS = ["GTA VI", "GTA 6", "Grand Theft Auto", "Vice City", "Leonida", "GTA Gameplay", "GTA Livestream"]
 TWITCH_CATEGORIES = ["Grand Theft Auto VI", "Grand Theft Auto V"]
@@ -58,7 +58,7 @@ def upsert(s, d: dict, is_sim: bool = False) -> Livestream:
         ls = Livestream(platform=d["platform"], stream_id=d["stream_id"], is_simulation=is_sim)
         s.add(ls)
     for k in ("title", "channel_name", "channel_id", "source_url", "language", "viewer_count", "category",
-              "thumbnail_url", "is_live", "chat_available", "live_chat_id"):
+              "thumbnail_url", "is_live", "chat_available", "live_chat_id", "license"):
         if k in d and d[k] is not None:
             setattr(ls, k, d[k])
     if d.get("started_at"):
@@ -70,10 +70,33 @@ def upsert(s, d: dict, is_sim: bool = False) -> Livestream:
     st = s.scalar(select(Streamer).where(Streamer.platform == d["platform"], Streamer.channel_id == d.get("channel_id")))
     if st:
         ls.streamer_id = st.id
+    if ls.license == "creativeCommon":
+        record_cc_license(s, ls)
     return ls
 
 
-def run_discovery(keywords: list[str] | None = None, language: str | None = "en", platforms=("youtube", "twitch")) -> dict:
+def record_cc_license(s, ls: Livestream) -> None:
+    """The creator published this stream under Creative Commons Attribution (CC BY), which
+    allows reuse, editing and commercial use with credit. Record that as the evidence.
+    Never overrides a record the owner made (e.g. RESTRICTED)."""
+    if s.scalar(select(RightsPermission).where(RightsPermission.source_url == ls.source_url)):
+        return
+    s.add(RightsPermission(
+        source_url=ls.source_url, state="EXPLICITLY_LICENSED", content_owner=ls.channel_name,
+        evidence=f"YouTube license field status.license=creativeCommon (CC BY) for {ls.source_url}, "
+                 f"read via YouTube Data API on {now():%Y-%m-%d}",
+        commercial_use=True, editing_allowed=True, recording_allowed=True, platforms_allowed=["youtube"],
+        attribution_required=f"Credit: {ls.channel_name} - {ls.source_url} (CC BY)",
+        notes="Auto-recorded from the stream's public license. Re-check the license on the watch page before "
+              "publishing; the creator can change it for future uploads."))
+    audit(s, "cc_license_recorded", ls.source_url, "system", "security", channel=ls.channel_name)
+
+
+def run_discovery(keywords: list[str] | None = None, language: str | None = "en", platforms=("youtube", "twitch"),
+                  cc_only: bool = False) -> dict:
+    """cc_only: YouTube only, streams the creator licensed as Creative Commons (CC BY)."""
+    if cc_only:
+        platforms = ("youtube",)
     keywords = keywords or DEFAULT_KEYWORDS
     report = {"youtube": {"status": "skipped"}, "twitch": {"status": "skipped"}, "found": 0}
     if "youtube" in platforms:
@@ -89,13 +112,14 @@ def run_discovery(keywords: list[str] | None = None, language: str | None = "en"
                 try:
                     with session() as s:
                         check_quota(s, 101)
-                    found += yt.search_live(q, 25, language)
+                    found += yt.search_live(q, 25, language, cc_only=cc_only)
                 except Exception as e:
                     errs.append(f"{q}: {e}")
             with session() as s:
                 for d in {d["stream_id"]: d for d in found}.values():
                     upsert(s, d)
-            report["youtube"] = {"status": "OK" if not errs else "PARTIAL", "streams": len(found), "errors": errs[:3]}
+            cc = sum(1 for d in found if d.get("license") == "creativeCommon")
+            report["youtube"] = {"status": "OK" if not errs else "PARTIAL", "streams": len(found), "cc_by": cc, "errors": errs[:3]}
             report["found"] += len(found)
     if "twitch" in platforms:
         tw = TwitchClient()
