@@ -1,0 +1,16 @@
+# GTA VI Growth Studio - Viral Clip Hunter (Python 3.12+; tested on 3.14)
+fastapi>=0.165
+uvicorn>=0.54
+pydantic>=2.14
+SQLAlchemy>=2.1
+httpx>=0.28
+websockets>=17
+cryptography>=50
+numpy>=2.5
+pillow>=13
+imageio-ffmpeg>=0.8     # fallback ffmpeg binary if none is on PATH (must include libx264 + libass)
+python-multipart>=0.0.34
+anthropic>=2.12         # optional: Claude commentary (only used when paid LLM calls are enabled)
+pytest>=9
+# optional for a server deployment:
+# psycopg[binary]>=3.2  # STUDIO_DATABASE_URL=postgresql+psycopg://...

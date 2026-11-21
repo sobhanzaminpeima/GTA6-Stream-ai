@@ -1,0 +1,24 @@
+# Whitelist: this folder also holds private channel work (videos, notes, keys).
+# Only the Viral Clip Hunter source is published.
+/*
+!/.gitignore
+!/studio/
+!/tests/
+!/deploy/
+!/packaging/
+!/docs/
+!/README.md
+!/LICENSE
+!/requirements-studio.txt
+!/start_studio.ps1
+!/pytest.ini
+!/.github/
+
+# never publish, even inside whitelisted folders
+.env
+*.env
+client_secret*.json
+studio_data/
+__pycache__/
+*.pyc
+packaging/build/

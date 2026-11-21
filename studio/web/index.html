@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTA VI Growth Studio · Viral Clip Hunter</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='29' fill='%2309070F' stroke='%23FF2E97' stroke-width='5'/><text x='32' y='40' font-size='24' text-anchor='middle' fill='%23FFE14D' font-family='Arial' font-weight='700'>VI</text></svg>">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="badge"><b>VI</b><small>CENTRAL</small></div>
+      <div><div class="brand-name">Growth Studio</div><div class="brand-sub">Viral Clip Hunter</div></div>
+    </div>
+    <nav id="nav">
+      <a href="#overview">Overview</a>
+      <a href="#radar">Live Radar</a>
+      <a href="#streamers">Streamers &amp; Rights</a>
+      <a href="#chat">Chat Intelligence</a>
+      <a href="#moments">Viral Moments</a>
+      <a href="#studio">AI Clip Studio</a>
+      <a href="#calendar">Content Calendar</a>
+      <a href="#analytics">YouTube Analytics</a>
+      <a href="#growth">Growth Intelligence</a>
+      <a href="#costs">Costs</a>
+      <a href="#settings">Settings &amp; Status</a>
+    </nav>
+    <div class="tagline">Catch the Moment. Tell the Story. Grow the Channel.</div>
+  </aside>
+  <main>
+    <header class="top">
+      <h1 id="title">Overview</h1>
+      <div class="top-right">
+        <span id="live-dot" class="dot"></span><span id="live-text" class="muted">connecting…</span>
+        <button class="ghost" id="lang-btn" onclick="I18N.set(I18N.lang === 'fa' ? 'en' : 'fa'); location.reload()">فارسی</button>
+        <button class="ghost" id="bell" title="Notifications">🔔 <span id="bell-n"></span></button>
+      </div>
+    </header>
+    <div id="notif" class="notif hidden"></div>
+    <section id="view"></section>
+  </main>
+</div>
+<div id="modal" class="modal hidden"><div class="modal-card"><button class="ghost close" onclick="closeModal()">✕</button><div id="modal-body"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+<script src="/static/i18n.js"></script>
+<script>I18N.apply();</script>
+<script src="/static/app.js"></script>
+</body>
+</html>
