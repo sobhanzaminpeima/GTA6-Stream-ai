@@ -73,6 +73,10 @@ Most clip tools wait for the VOD, or they just re-upload someone else's footage.
 1. Download **`GTA6StreamAI.exe`** from [Releases](../../releases).
 2. Double-click it. It installs itself per user, with no admin rights: Desktop + Start Menu shortcuts and data in `%LOCALAPPDATA%\GTA6StreamAI`.
 3. Your browser opens the dashboard. Press **▶ Run simulation** to see the full flow with no API keys.
+   It streams a generated sample feed with simulated chat, so you need no footage and no keys.
+
+> The exe is not code-signed yet, so Windows SmartScreen may say *"Windows protected your PC"*: click **More info → Run anyway**.
+> A console window shows the app's log; close it to stop the app. Build it yourself with `packaging\build_exe.ps1`.
 
 ### Option 2: from source
 ```powershell
